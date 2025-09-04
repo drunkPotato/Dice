@@ -24,18 +24,21 @@ function clearResults() {
             <p>Select an experiment and click Calculate to see results.</p>
         </div>
     `;
-    
-    // Clear chart
-    if (chart) {
-        chart.destroy();
-        chart = null;
-    }
+    destroyChart();
 }
 
-// Utility functions
+// Utility functions with memoization
+const factorialCache = {};
 function factorial(n) {
     if (n <= 1) return 1;
-    return n * factorial(n - 1);
+    if (factorialCache[n]) return factorialCache[n];
+    
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+        result *= i;
+    }
+    factorialCache[n] = result;
+    return result;
 }
 
 function combinations(n, k) {
@@ -93,12 +96,16 @@ function displayResults(title, data, summary = null) {
     container.innerHTML = html;
 }
 
-function updateChart(labels, probabilities, title) {
-    const ctx = document.getElementById('probabilityChart').getContext('2d');
-    
+function destroyChart() {
     if (chart) {
         chart.destroy();
+        chart = null;
     }
+}
+
+function updateChart(labels, probabilities, title) {
+    const ctx = document.getElementById('probabilityChart').getContext('2d');
+    destroyChart();
     
     chart = new Chart(ctx, {
         type: 'bar',
@@ -323,7 +330,3 @@ function calculateAllDifferent() {
     updateChart(labels, probabilities, `Probability of all different sums (${dicePerPerson} dice each)`);
 }
 
-// Initialize without any calculation
-document.addEventListener('DOMContentLoaded', function() {
-    // Page loads with no results shown
-});

@@ -80,8 +80,6 @@ body {
     margin-bottom: 0;
 }
 
-/* Remove this selector as arrows are now set correctly in HTML */
-
 .experiment-description {
     background: rgba(52, 152, 219, 0.1);
     padding: 10px;
@@ -174,9 +172,6 @@ body {
     padding: 40px 20px;
 }
 
-.no-results-message p {
-    margin: 0;
-}
 
 .results-table {
     width: 100%;

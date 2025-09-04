@@ -4,56 +4,97 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a mathematical analysis project that calculates probabilities related to dice rolling scenarios, specifically analyzing the probability that 4 people rolling different numbers of dice will all get different sums.
+Interactive web-based dice probability calculator hosted on GitHub Pages. Users can explore various dice probability scenarios through an intuitive 3-panel interface with real-time calculations and visualizations.
 
 ## Technology Stack
 
-- **Language**: Python 3
-- **Dependencies**: `numpy` (mathematical computations), `matplotlib` (plotting with text fallback)
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Charting**: Chart.js for interactive visualizations
+- **Hosting**: GitHub Pages (static site)
+- **No backend dependencies** - all calculations run client-side
 
 ## Development Commands
 
-### Setup
+### Local Development
 ```bash
-# Install required dependencies
-pip install numpy matplotlib
+# Simple file opening
+open index.html
 
-# Run the analysis
-python yesyes.py
+# Or serve locally (recommended)
+python -m http.server 8000
+# Then open http://localhost:8000
+
+# Or with Node.js
+npx http-server
 ```
 
-### Alternative minimal setup
+### Git Operations
 ```bash
-# The code has text-based visualization fallback
-pip install numpy
-python yesyes.py
+git add .
+git commit -m "Your changes"
+git push origin main
+```
+
+## File Structure
+
+```
+/
+├── index.html          # Main application interface
+├── style.css          # Responsive 3-panel layout styling  
+├── script.js          # Probability calculations and UI logic
+└── CLAUDE.md          # This documentation file
 ```
 
 ## Code Architecture
 
-The project is implemented as a single Python file (`yesyes.py`) containing:
+### 3-Panel Interface Layout
+- **Left Panel**: Collapsible experiment controls with parameter inputs
+- **Middle Panel**: Results table with formatted probability data (400px width)
+- **Right Panel**: Interactive Chart.js visualizations (flexible width)
 
-### Core Mathematical Functions
-- `calculate_exact_probability(num_dice, num_people=4)` - Exact combinatorial calculation
-- `birthday_paradox_approximation(num_possible_sums, num_people=4)` - Birthday paradox approximation
-- `normal_approximation(num_dice, num_people=4)` - Normal distribution approximation for large dice counts
-- `analyze_convergence()` - Mathematical convergence analysis
-- `derive_formula()` - Formula derivation explanation
-- `plot_analysis(results)` - Text-based visualization
+### Core JavaScript Functions
 
-### Known Issues
-The main() function calls two undefined functions that need implementation:
-- `show_rate_of_change(results)` - Should analyze rate of change in probabilities
-- `find_asymptotic_limit()` - Should determine asymptotic behavior
+**UI Management:**
+- `toggleExperiment(id)` - Collapsible experiment sections
+- `clearResults()` - Reset display when experiments collapse
+- `displayResults()` - Format and show probability tables
+- `updateChart()` - Create/update Chart.js visualizations
+
+**Mathematical Calculations:**
+- `factorial(n)` - Optimized with memoization for performance
+- `combinations(n, k)` - Binomial coefficient calculations
+- `calculateSingleDie()` - Probability of rolling 6 on standard die
+- `calculateMultipleDice()` - Sum distributions for multiple dice
+- `calculateConsecutive()` - Consecutive same number probabilities  
+- `calculateAllDifferent()` - Probability all people get different sums
+
+### Experiments Available
+
+1. **Single Die** - Rolling 6 on standard die over multiple attempts
+2. **Multiple Dice Sum** - Probability distributions for dice sums
+3. **Consecutive Same Number** - Probability of consecutive identical rolls
+4. **All Different Sums** - Probability all people get unique sums (birthday paradox)
+
+## UI Behavior
+
+- All experiments start collapsed by default
+- Results only appear after clicking Calculate buttons
+- Collapsing any experiment clears all results and charts
+- Responsive design adapts to mobile/tablet screens
+- Hover effects and smooth animations throughout
+
+## Key Features
+
+- **Real-time calculations** - No server requests needed
+- **Interactive charts** - Hover for precise values
+- **Probability formatting** - Intelligent display (%, scientific notation)
+- **Input validation** - Prevents invalid parameter combinations
+- **Memoized calculations** - Performance optimized for repeated use
 
 ## Mathematical Context
 
-The project studies probability distributions where:
-- Multiple people roll different numbers of dice
-- Goal is calculating probability that all sums are unique
-- Uses multiple approximation methods to validate exact calculations
-- Analyzes convergence behavior as dice count increases
-
-## File Structure
-
-Single-file architecture with all functionality in `yesyes.py` (7,783 bytes).
+Implements various probability calculation methods:
+- Exact combinatorial analysis
+- Birthday paradox approximations  
+- Binomial distribution calculations
+- Normal distribution approximations for large numbers
