@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Probability Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Controls -->
+        <div class="left-panel">
+            <h1>Dice Probability Calculator</h1>
+            
+            <!-- Experiment 1: Single Die -->
+            <div class="experiment-section">
+                <h2>Single Die</h2>
+                <div class="control-group">
+                    <label>Number of Sides:</label>
+                    <select id="singleDieSides">
+                        <option value="6" selected>6-sided die</option>
+                        <option value="4">4-sided die</option>
+                        <option value="8">8-sided die</option>
+                        <option value="10">10-sided die</option>
+                        <option value="12">12-sided die</option>
+                        <option value="20">20-sided die</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Number of Rolls:</label>
+                    <input type="number" id="singleDieRolls" value="1" min="1" max="10">
+                </div>
+                <div class="control-group">
+                    <label>Target Number:</label>
+                    <input type="number" id="singleDieTarget" value="6" min="1" max="20">
+                </div>
+                <button class="calculate-btn" onclick="calculateSingleDie()">Calculate</button>
+            </div>
+
+            <!-- Experiment 2: Multiple Dice Sum -->
+            <div class="experiment-section">
+                <h2>Multiple Dice Sum</h2>
+                <div class="control-group">
+                    <label>Number of Dice:</label>
+                    <input type="number" id="multiDiceCount" value="2" min="1" max="6">
+                </div>
+                <div class="control-group">
+                    <label>Die Sides:</label>
+                    <select id="multiDieSides">
+                        <option value="6" selected>6-sided dice</option>
+                        <option value="4">4-sided dice</option>
+                        <option value="8">8-sided dice</option>
+                        <option value="10">10-sided dice</option>
+                        <option value="12">12-sided dice</option>
+                        <option value="20">20-sided dice</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Target Sum:</label>
+                    <input type="number" id="multiDiceTarget" value="7" min="2" max="120">
+                </div>
+                <button class="calculate-btn" onclick="calculateMultipleDice()">Calculate</button>
+            </div>
+
+            <!-- Experiment 3: Consecutive Rolls -->
+            <div class="experiment-section">
+                <h2>Consecutive Same Number</h2>
+                <div class="control-group">
+                    <label>Die Sides:</label>
+                    <select id="consecutiveDieSides">
+                        <option value="6" selected>6-sided die</option>
+                        <option value="4">4-sided die</option>
+                        <option value="8">8-sided die</option>
+                        <option value="10">10-sided die</option>
+                        <option value="12">12-sided die</option>
+                        <option value="20">20-sided die</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Consecutive Count:</label>
+                    <input type="number" id="consecutiveCount" value="3" min="1" max="10">
+                </div>
+                <div class="control-group">
+                    <label>Target Number:</label>
+                    <input type="number" id="consecutiveTarget" value="6" min="1" max="20">
+                </div>
+                <button class="calculate-btn" onclick="calculateConsecutive()">Calculate</button>
+            </div>
+
+            <!-- Experiment 4: All Different Sums -->
+            <div class="experiment-section">
+                <h2>All Different Sums</h2>
+                <div class="control-group">
+                    <label>Number of People:</label>
+                    <input type="number" id="allDiffPeople" value="4" min="2" max="8">
+                </div>
+                <div class="control-group">
+                    <label>Dice per Person:</label>
+                    <input type="number" id="allDiffDice" value="3" min="1" max="10">
+                </div>
+                <button class="calculate-btn" onclick="calculateAllDifferent()">Calculate</button>
+            </div>
+        </div>
+
+        <!-- Middle Panel - Results Table -->
+        <div class="middle-panel">
+            <h2>Results</h2>
+            <div id="results-container">
+                <p>Select an experiment and click Calculate to see results.</p>
+            </div>
+        </div>
+
+        <!-- Right Panel - Graph -->
+        <div class="right-panel">
+            <h2>Distribution</h2>
+            <canvas id="probabilityChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
