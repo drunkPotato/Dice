@@ -12,6 +12,23 @@ function toggleExperiment(experimentId) {
     } else {
         controls.classList.add('collapsed');
         arrow.textContent = '▶';
+        // Clear results when collapsing
+        clearResults();
+    }
+}
+
+function clearResults() {
+    const container = document.getElementById('results-container');
+    container.innerHTML = `
+        <div class="no-results-message">
+            <p>Select an experiment and click Calculate to see results.</p>
+        </div>
+    `;
+    
+    // Clear chart
+    if (chart) {
+        chart.destroy();
+        chart = null;
     }
 }
 
@@ -120,14 +137,9 @@ function updateChart(labels, probabilities, title) {
 
 // Single Die Calculations
 function calculateSingleDie() {
-    const sides = parseInt(document.getElementById('singleDieSides').value);
+    const sides = 6; // Always use 6-sided die
     const rolls = parseInt(document.getElementById('singleDieRolls').value);
-    const target = parseInt(document.getElementById('singleDieTarget').value);
-    
-    if (target > sides) {
-        alert('Target number cannot be greater than the number of sides!');
-        return;
-    }
+    const target = 6; // Always target 6
     
     const results = [];
     
@@ -151,11 +163,11 @@ function calculateSingleDie() {
         <p><strong>Expected occurrences:</strong> ${expected.toFixed(2)}</p>
     `;
     
-    displayResults(`Single ${sides}-sided Die (${rolls} rolls)`, results, summary);
+    displayResults(`Single 6-sided Die (${rolls} rolls)`, results, summary);
     
     const labels = results.map(r => r.outcome.split(' ')[2] + ' times');
     const probabilities = results.map(r => r.probability);
-    updateChart(labels, probabilities, `Distribution of ${target} on ${sides}-sided die (${rolls} rolls)`);
+    updateChart(labels, probabilities, `Distribution of rolling 6 (${rolls} rolls)`);
 }
 
 // Multiple Dice Sum Calculations
@@ -281,14 +293,19 @@ function calculateAllDifferent() {
     
     const results = [];
     
-    // Show probability for different numbers of people
-    for (let people = 2; people <= numPeople + 3; people++) {
-        let p = 1;
-        for (let i = 0; i < people; i++) {
-            p *= (possibleSums - i) / possibleSums;
+    // Show probability for different numbers of people (1 to numPeople)
+    for (let people = 1; people <= numPeople; people++) {
+        let p;
+        if (people === 1) {
+            p = 1.0; // Single person always has unique sum
+        } else {
+            p = 1;
+            for (let i = 0; i < people; i++) {
+                p *= (possibleSums - i) / possibleSums;
+            }
         }
         results.push({
-            outcome: `${people} people`,
+            outcome: `${people} ${people === 1 ? 'person' : 'people'}`,
             probability: p
         });
     }
@@ -306,7 +323,7 @@ function calculateAllDifferent() {
     updateChart(labels, probabilities, `Probability of all different sums (${dicePerPerson} dice each)`);
 }
 
-// Initialize with a default calculation
+// Initialize without any calculation
 document.addEventListener('DOMContentLoaded', function() {
-    calculateSingleDie();
+    // Page loads with no results shown
 });

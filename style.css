@@ -80,8 +80,21 @@ body {
     margin-bottom: 0;
 }
 
-.collapsed + .experiment-header .toggle-arrow {
-    transform: rotate(-90deg);
+/* Remove this selector as arrows are now set correctly in HTML */
+
+.experiment-description {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border-left: 3px solid #3498db;
+}
+
+.experiment-description p {
+    margin: 0;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
 }
 
 .control-group {
@@ -152,6 +165,17 @@ body {
 
 #results-container {
     font-size: 14px;
+}
+
+.no-results-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+.no-results-message p {
+    margin: 0;
 }
 
 .results-table {

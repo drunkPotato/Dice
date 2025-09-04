@@ -17,27 +17,15 @@
             <div class="experiment-section">
                 <h2 class="experiment-header" onclick="toggleExperiment('experiment1')">
                     Single Die
-                    <span class="toggle-arrow">▼</span>
+                    <span class="toggle-arrow">▶</span>
                 </h2>
-                <div class="experiment-controls" id="experiment1">
-                <div class="control-group">
-                    <label>Number of Sides:</label>
-                    <select id="singleDieSides">
-                        <option value="6" selected>6-sided die</option>
-                        <option value="4">4-sided die</option>
-                        <option value="8">8-sided die</option>
-                        <option value="10">10-sided die</option>
-                        <option value="12">12-sided die</option>
-                        <option value="20">20-sided die</option>
-                    </select>
+                <div class="experiment-controls collapsed" id="experiment1">
+                <div class="experiment-description">
+                    <p>Calculate the probability of rolling a 6 on a standard 6-sided die over multiple rolls.</p>
                 </div>
                 <div class="control-group">
                     <label>Number of Rolls:</label>
                     <input type="number" id="singleDieRolls" value="1" min="1" max="10">
-                </div>
-                <div class="control-group">
-                    <label>Target Number:</label>
-                    <input type="number" id="singleDieTarget" value="6" min="1" max="20">
                 </div>
                 <button class="calculate-btn" onclick="calculateSingleDie()">Calculate</button>
                 </div>
@@ -47,9 +35,12 @@
             <div class="experiment-section">
                 <h2 class="experiment-header" onclick="toggleExperiment('experiment2')">
                     Multiple Dice Sum
-                    <span class="toggle-arrow">▼</span>
+                    <span class="toggle-arrow">▶</span>
                 </h2>
-                <div class="experiment-controls" id="experiment2">
+                <div class="experiment-controls collapsed" id="experiment2">
+                <div class="experiment-description">
+                    <p>Calculate the probability distribution for the sum of multiple dice rolled together.</p>
+                </div>
                 <div class="control-group">
                     <label>Number of Dice:</label>
                     <input type="number" id="multiDiceCount" value="2" min="1" max="6">
@@ -77,9 +68,12 @@
             <div class="experiment-section">
                 <h2 class="experiment-header" onclick="toggleExperiment('experiment3')">
                     Consecutive Same Number
-                    <span class="toggle-arrow">▼</span>
+                    <span class="toggle-arrow">▶</span>
                 </h2>
                 <div class="experiment-controls collapsed" id="experiment3">
+                <div class="experiment-description">
+                    <p>Calculate the probability of rolling the same number consecutively in multiple rolls.</p>
+                </div>
                 <div class="control-group">
                     <label>Die Sides:</label>
                     <select id="consecutiveDieSides">
@@ -107,12 +101,15 @@
             <div class="experiment-section">
                 <h2 class="experiment-header" onclick="toggleExperiment('experiment4')">
                     All Different Sums
-                    <span class="toggle-arrow">▼</span>
+                    <span class="toggle-arrow">▶</span>
                 </h2>
                 <div class="experiment-controls collapsed" id="experiment4">
+                <div class="experiment-description">
+                    <p>Calculate the probability that different people rolling dice will all get different sums.</p>
+                </div>
                 <div class="control-group">
                     <label>Number of People:</label>
-                    <input type="number" id="allDiffPeople" value="4" min="2" max="8">
+                    <input type="number" id="allDiffPeople" value="4" min="1" max="8">
                 </div>
                 <div class="control-group">
                     <label>Dice per Person:</label>
@@ -127,7 +124,9 @@
         <div class="middle-panel">
             <h2>Results</h2>
             <div id="results-container">
-                <p>Select an experiment and click Calculate to see results.</p>
+                <div class="no-results-message">
+                    <p>Select an experiment and click Calculate to see results.</p>
+                </div>
             </div>
         </div>
 
