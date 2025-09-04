@@ -15,7 +15,11 @@
             
             <!-- Experiment 1: Single Die -->
             <div class="experiment-section">
-                <h2>Single Die</h2>
+                <h2 class="experiment-header" onclick="toggleExperiment('experiment1')">
+                    Single Die
+                    <span class="toggle-arrow">▼</span>
+                </h2>
+                <div class="experiment-controls" id="experiment1">
                 <div class="control-group">
                     <label>Number of Sides:</label>
                     <select id="singleDieSides">
@@ -36,11 +40,16 @@
                     <input type="number" id="singleDieTarget" value="6" min="1" max="20">
                 </div>
                 <button class="calculate-btn" onclick="calculateSingleDie()">Calculate</button>
+                </div>
             </div>
 
             <!-- Experiment 2: Multiple Dice Sum -->
             <div class="experiment-section">
-                <h2>Multiple Dice Sum</h2>
+                <h2 class="experiment-header" onclick="toggleExperiment('experiment2')">
+                    Multiple Dice Sum
+                    <span class="toggle-arrow">▼</span>
+                </h2>
+                <div class="experiment-controls" id="experiment2">
                 <div class="control-group">
                     <label>Number of Dice:</label>
                     <input type="number" id="multiDiceCount" value="2" min="1" max="6">
@@ -61,11 +70,16 @@
                     <input type="number" id="multiDiceTarget" value="7" min="2" max="120">
                 </div>
                 <button class="calculate-btn" onclick="calculateMultipleDice()">Calculate</button>
+                </div>
             </div>
 
             <!-- Experiment 3: Consecutive Rolls -->
             <div class="experiment-section">
-                <h2>Consecutive Same Number</h2>
+                <h2 class="experiment-header" onclick="toggleExperiment('experiment3')">
+                    Consecutive Same Number
+                    <span class="toggle-arrow">▼</span>
+                </h2>
+                <div class="experiment-controls collapsed" id="experiment3">
                 <div class="control-group">
                     <label>Die Sides:</label>
                     <select id="consecutiveDieSides">
@@ -86,11 +100,16 @@
                     <input type="number" id="consecutiveTarget" value="6" min="1" max="20">
                 </div>
                 <button class="calculate-btn" onclick="calculateConsecutive()">Calculate</button>
+                </div>
             </div>
 
             <!-- Experiment 4: All Different Sums -->
             <div class="experiment-section">
-                <h2>All Different Sums</h2>
+                <h2 class="experiment-header" onclick="toggleExperiment('experiment4')">
+                    All Different Sums
+                    <span class="toggle-arrow">▼</span>
+                </h2>
+                <div class="experiment-controls collapsed" id="experiment4">
                 <div class="control-group">
                     <label>Number of People:</label>
                     <input type="number" id="allDiffPeople" value="4" min="2" max="8">
@@ -100,6 +119,7 @@
                     <input type="number" id="allDiffDice" value="3" min="1" max="10">
                 </div>
                 <button class="calculate-btn" onclick="calculateAllDifferent()">Calculate</button>
+                </div>
             </div>
         </div>
 

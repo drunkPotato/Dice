@@ -1,5 +1,20 @@
 let chart = null;
 
+// Toggle experiment sections
+function toggleExperiment(experimentId) {
+    const controls = document.getElementById(experimentId);
+    const header = controls.previousElementSibling;
+    const arrow = header.querySelector('.toggle-arrow');
+    
+    if (controls.classList.contains('collapsed')) {
+        controls.classList.remove('collapsed');
+        arrow.textContent = '▼';
+    } else {
+        controls.classList.add('collapsed');
+        arrow.textContent = '▶';
+    }
+}
+
 // Utility functions
 function factorial(n) {
     if (n <= 1) return 1;
