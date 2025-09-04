@@ -122,25 +122,42 @@ body {
     border-color: #3498db;
 }
 
-.calculate-btn {
-    width: 100%;
+.button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.calculate-btn, .maths-btn {
+    flex: 1;
     padding: 10px;
-    background: #3498db;
-    color: white;
     border: none;
     border-radius: 4px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.3s;
-    margin-top: 10px;
+}
+
+.calculate-btn {
+    background: #3498db;
+    color: white;
 }
 
 .calculate-btn:hover {
     background: #2980b9;
 }
 
-.calculate-btn:active {
+.maths-btn {
+    background: #9b59b6;
+    color: white;
+}
+
+.maths-btn:hover {
+    background: #8e44ad;
+}
+
+.calculate-btn:active, .maths-btn:active {
     transform: translateY(1px);
 }
 
@@ -228,6 +245,54 @@ body {
     margin-bottom: 5px;
 }
 
+.maths-explanation {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.maths-explanation h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #9b59b6;
+    padding-bottom: 10px;
+}
+
+.formula-section {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #9b59b6;
+}
+
+.formula-section h4 {
+    color: #8e44ad;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.formula {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.formula-section ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.formula-section li {
+    margin-bottom: 5px;
+}
+
 /* Right Panel - Graph */
 .right-panel {
     flex: 1;
@@ -246,7 +311,9 @@ body {
 
 #probabilityChart {
     width: 100%;
-    height: calc(100% - 60px);
+    height: 300px;
+    margin-top: 20px;
+    margin-bottom: 30px;
 }
 
 /* Responsive Design */

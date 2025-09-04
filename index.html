@@ -25,9 +25,12 @@
                 </div>
                 <div class="control-group">
                     <label>Number of Rolls:</label>
-                    <input type="number" id="singleDieRolls" value="1" min="1" max="10">
+                    <input type="number" id="singleDieRolls" value="1" min="1" max="1000">
                 </div>
-                <button class="calculate-btn" onclick="calculateSingleDie()">Calculate</button>
+                <div class="button-group">
+                    <button class="calculate-btn" onclick="calculateSingleDie()">Calculate</button>
+                    <button class="maths-btn" onclick="showMathsSingleDie()">Maths</button>
+                </div>
                 </div>
             </div>
 
@@ -43,7 +46,7 @@
                 </div>
                 <div class="control-group">
                     <label>Number of Dice:</label>
-                    <input type="number" id="multiDiceCount" value="2" min="1" max="6">
+                    <input type="number" id="multiDiceCount" value="2" min="1" max="10">
                 </div>
                 <div class="control-group">
                     <label>Die Sides:</label>
@@ -58,9 +61,12 @@
                 </div>
                 <div class="control-group">
                     <label>Target Sum:</label>
-                    <input type="number" id="multiDiceTarget" value="7" min="2" max="120">
+                    <input type="number" id="multiDiceTarget" value="7" min="1" max="200">
                 </div>
-                <button class="calculate-btn" onclick="calculateMultipleDice()">Calculate</button>
+                <div class="button-group">
+                    <button class="calculate-btn" onclick="calculateMultipleDice()">Calculate</button>
+                    <button class="maths-btn" onclick="showMathsMultipleDice()">Maths</button>
+                </div>
                 </div>
             </div>
 
@@ -87,13 +93,16 @@
                 </div>
                 <div class="control-group">
                     <label>Consecutive Count:</label>
-                    <input type="number" id="consecutiveCount" value="3" min="1" max="10">
+                    <input type="number" id="consecutiveCount" value="3" min="1" max="15">
                 </div>
                 <div class="control-group">
                     <label>Target Number:</label>
                     <input type="number" id="consecutiveTarget" value="6" min="1" max="20">
                 </div>
-                <button class="calculate-btn" onclick="calculateConsecutive()">Calculate</button>
+                <div class="button-group">
+                    <button class="calculate-btn" onclick="calculateConsecutive()">Calculate</button>
+                    <button class="maths-btn" onclick="showMathsConsecutive()">Maths</button>
+                </div>
                 </div>
             </div>
 
@@ -109,13 +118,16 @@
                 </div>
                 <div class="control-group">
                     <label>Number of People:</label>
-                    <input type="number" id="allDiffPeople" value="4" min="1" max="8">
+                    <input type="number" id="allDiffPeople" value="4" min="1" max="20">
                 </div>
                 <div class="control-group">
                     <label>Dice per Person:</label>
                     <input type="number" id="allDiffDice" value="3" min="1" max="10">
                 </div>
-                <button class="calculate-btn" onclick="calculateAllDifferent()">Calculate</button>
+                <div class="button-group">
+                    <button class="calculate-btn" onclick="calculateAllDifferent()">Calculate</button>
+                    <button class="maths-btn" onclick="showMathsAllDifferent()">Maths</button>
+                </div>
                 </div>
             </div>
         </div>
