@@ -129,6 +129,13 @@ function updateChart(labels, probabilities, title, chartType = 'bar') {
                 },
                 title: {
                     display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return (context.parsed.y * 100).toFixed(4) + '%';
+                        }
+                    }
                 }
             },
             scales: {
@@ -172,23 +179,9 @@ function calculateSingleDie() {
     const variance = rolls * p * (1 - p);
     const stdDev = Math.sqrt(variance);
     
-    // For large rolls, focus on the 95% confidence interval around the expected value
-    let startK, endK;
-    if (rolls <= 50) {
-        // For small rolls, show all outcomes
-        startK = 0;
-        endK = rolls;
-    } else {
-        // For large rolls, show 95% of probability mass around expected value
-        startK = Math.max(0, Math.floor(expected - 2 * stdDev));
-        endK = Math.min(rolls, Math.ceil(expected + 2 * stdDev));
-    }
-    
-    const allResults = [];
-    let totalShownProb = 0;
-    
-    // Calculate probabilities for the selected range
-    for (let k = startK; k <= endK; k++) {
+    // Calculate all probabilities first to find 99% cutoff
+    const allProbabilities = [];
+    for (let k = 0; k <= rolls; k++) {
         let prob;
         if (rolls <= 170) {
             // Use exact binomial calculation for smaller values
@@ -199,28 +192,54 @@ function calculateSingleDie() {
             prob = Math.exp(-0.5 * z * z) / (stdDev * Math.sqrt(2 * Math.PI));
         }
         
-        if (prob > 1e-10) { // Only show probabilities above threshold
-            allResults.push({
-                outcome: `${target} appears ${k} time${k !== 1 ? 's' : ''}`,
-                probability: prob
-            });
-            totalShownProb += prob;
+        if (prob > 1e-10) { // Only include meaningful probabilities
+            allProbabilities.push({ k: k, prob: prob });
         }
+    }
+    
+    // Sort by probability (highest first) to find 99% cutoff
+    allProbabilities.sort((a, b) => b.prob - a.prob);
+    
+    // Find the cutoff point where cumulative probability reaches 99%
+    let cumulativeProb = 0;
+    const targetProb = 0.99;
+    const selectedResults = [];
+    
+    for (const item of allProbabilities) {
+        selectedResults.push(item);
+        cumulativeProb += item.prob;
+        if (cumulativeProb >= targetProb) {
+            break;
+        }
+    }
+    
+    // Convert to the expected format
+    const allResults = [];
+    let totalShownProb = 0;
+    
+    for (const item of selectedResults) {
+        allResults.push({
+            outcome: `${target} appears ${item.k} time${item.k !== 1 ? 's' : ''}`,
+            probability: item.prob
+        });
+        totalShownProb += item.prob;
     }
     
     // Sort by probability (descending) and take most likely outcomes
     allResults.sort((a, b) => b.probability - a.probability);
     
-    const results = allResults;
+    // Limit results if there are too many, keeping the highest probability ones
+    const maxResultsToShow = 20;
+    const results = allResults.length > maxResultsToShow ? allResults.slice(0, maxResultsToShow) : allResults;
     
     // Calculate summary statistics
     const exactlyOnce = rolls === 1 ? (1/sides) : (rolls <= 170 ? combinations(rolls, 1) * Math.pow(p, 1) * Math.pow(1-p, rolls-1) : 0);
     const atLeastOnce = 1 - Math.pow(1-p, rolls);
     
     let summaryText = '';
-    if (rolls > 50) {
+    if (rolls > 20) {
         summaryText = `
-            <p><strong>Showing results with highest probabilities (≈${(totalShownProb * 100).toFixed(1)}% of total probability)</strong></p>
+            <p><strong>Showing outcomes representing ${(totalShownProb * 100).toFixed(1)}% of total probability</strong></p>
             <p><strong>Expected occurrences:</strong> ${expected.toFixed(2)} ± ${(1.96 * stdDev).toFixed(2)} (95% confidence)</p>
             <p><strong>Most likely outcome:</strong> ${Math.round(expected)} occurrences</p>
             <p><strong>Probability of getting ${target} at least once:</strong> ${formatProbability(atLeastOnce)}</p>
@@ -235,11 +254,36 @@ function calculateSingleDie() {
     
     displayResults(`Single 6-sided Die (${rolls} rolls)`, results, summaryText);
     
-    const labels = results.map(r => {
+    // For chart, sort by outcome value for proper numerical ordering
+    const chartResults = [...results].sort((a, b) => {
+        const aK = parseInt(a.outcome.split(' ')[2]);
+        const bK = parseInt(b.outcome.split(' ')[2]);
+        return aK - bK;
+    });
+    
+    // Calculate range displayed in chart
+    const chartKValues = chartResults.map(r => parseInt(r.outcome.split(' ')[2]));
+    const minChartK = Math.min(...chartKValues);
+    const maxChartK = Math.max(...chartKValues);
+    const chartRangeProb = chartResults.reduce((sum, r) => sum + r.probability, 0);
+    
+    // Add range information to the summary
+    const rangeInfo = `<p><strong>Chart displays range ${minChartK}-${maxChartK} occurrences (${(chartRangeProb * 100).toFixed(1)}% of total probability)</strong></p>`;
+    
+    // Update the summary text by adding the range info
+    if (rolls > 20) {
+        summaryText = summaryText.replace('</p>', '</p>' + rangeInfo);
+    } else {
+        summaryText += rangeInfo;
+    }
+    
+    displayResults(`Single 6-sided Die (${rolls} rolls)`, results, summaryText);
+    
+    const labels = chartResults.map(r => {
         const k = parseInt(r.outcome.split(' ')[2]);
         return k + (k === 1 ? ' time' : ' times');
     });
-    const probabilities = results.map(r => r.probability);
+    const probabilities = chartResults.map(r => r.probability);
     updateChart(labels, probabilities, `Distribution of rolling 6 (${rolls} rolls)`);
 }
 
@@ -358,45 +402,48 @@ function calculateConsecutive() {
     updateChart(labels, probabilities, `Probability of ${consecutive} consecutive ${target}s`);
 }
 
-// All Different Sums Calculations (from original code)
+// All Different Sums Calculations (exact calculation with dice sum distribution)
 function calculateAllDifferent() {
     const numPeople = parseInt(document.getElementById('allDiffPeople').value);
     const dicePerPerson = parseInt(document.getElementById('allDiffDice').value);
     
-    // This uses simplified approximation - could be enhanced with exact calculation
-    const minSum = dicePerPerson;
-    const maxSum = dicePerPerson * 6;
-    const possibleSums = maxSum - minSum + 1;
-    
-    // Birthday paradox approximation
-    let prob = 1;
-    for (let i = 0; i < numPeople; i++) {
-        prob *= (possibleSums - i) / possibleSums;
+    if (numPeople > 10) {
+        alert('Maximum 10 people allowed for performance reasons');
+        return;
     }
+    
+    // Calculate actual sum probabilities for dice
+    const sumProbabilities = calculateSumProbabilities(dicePerPerson, 6);
+    const sums = Object.keys(sumProbabilities).map(Number).sort((a, b) => a - b);
     
     const results = [];
     
-    // Show probability for different numbers of people (1 to numPeople)
+    // Calculate probability for different numbers of people
     for (let people = 1; people <= numPeople; people++) {
-        let p;
+        let probability;
+        
         if (people === 1) {
-            p = 1.0; // Single person always has unique sum
+            probability = 1.0; // Single person always has unique sum
         } else {
-            p = 1;
-            for (let i = 0; i < people; i++) {
-                p *= (possibleSums - i) / possibleSums;
-            }
+            // Calculate exact probability that all people get different sums
+            probability = calculateExactAllDifferent(people, sumProbabilities, sums);
         }
+        
         results.push({
             outcome: `${people} ${people === 1 ? 'person' : 'people'}`,
-            probability: p
+            probability: probability
         });
     }
     
+    const targetProb = results[numPeople - 1].probability;
+    const minSum = dicePerPerson;
+    const maxSum = dicePerPerson * 6;
+    
     const summary = `
-        <p><strong>Probability all ${numPeople} people get different sums:</strong> ${formatProbability(prob)}</p>
-        <p><strong>Each person rolls ${dicePerPerson} dice</strong></p>
-        <p><strong>Possible sums range:</strong> ${minSum} to ${maxSum} (${possibleSums} possibilities)</p>
+        <p><strong>Probability all ${numPeople} people get different sums:</strong> ${formatProbability(targetProb)}</p>
+        <p><strong>Each person rolls ${dicePerPerson} dice (${minSum}-${maxSum} range)</strong></p>
+        <p><strong>Accounts for non-uniform sum distribution</strong></p>
+        <p><strong>Most likely sum:</strong> ${findMostLikelySum(sumProbabilities)}</p>
     `;
     
     displayResults(`All Different Sums`, results, summary);
@@ -428,27 +475,85 @@ function showMathsSingleDie() {
             <h4>At Least One Success</h4>
             <p>Probability of getting at least one 6:</p>
             <div class="formula">P(X ≥ 1) = 1 - P(X = 0) = 1 - (5/6)^n</div>
-            <p>For ${rolls} rolls: <strong>${formatProbability(1 - Math.pow(5/6, rolls))}</strong></p>
+            <p>For 1 roll: <strong>${formatProbability(1 - Math.pow(5/6, 1))}</strong></p>
+            <p>For 5 rolls: <strong>${formatProbability(1 - Math.pow(5/6, 5))}</strong></p>
         </div>
         
         <div class="formula-section">
             <h4>Expected Value</h4>
             <p>Expected number of sixes in n rolls:</p>
-            <div class="formula">E[X] = n × (1/6) = ${rolls}/6 = ${(rolls/6).toFixed(2)}</div>
+            <div class="formula">E[X] = n × (1/6)</div>
+            <p>For 1 roll: E[X] = 1/6 = ${(1/6).toFixed(2)}</p>
+            <p>For 5 rolls: E[X] = 5/6 = ${(5/6).toFixed(2)}</p>
+        </div>
+        
+        <div class="formula-section">
+            <h4>Key Insights</h4>
+            <p><strong>99% Chance Threshold:</strong> You need ${Math.ceil(Math.log(1 - 0.99) / Math.log(5/6))} rolls to have a 99% chance of getting at least one 6.</p>
+            <p>Click the buttons below to switch between visualizations:</p>
+            <button onclick="showProgressionGraph()" style="background: rgba(52, 152, 219, 0.8); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">Progression Graph</button>
+            <button onclick="showDistributionExample()" style="background: rgba(52, 152, 219, 0.8); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px;">50-Roll Distribution</button>
         </div>
     `;
     
     displayMathsExplanation('Single Die Mathematics', explanation);
     
-    // Graph: Probability vs Number of Rolls (1 to 15)
+    // Show the progression graph initially
+    showProgressionGraph();
+}
+
+function showProgressionGraph() {
+    // Calculate how many rolls needed for 99% chance
+    const rollsFor99Percent = Math.ceil(Math.log(1 - 0.99) / Math.log(5/6));
+    
+    // Graph: Probability vs Number of Rolls (up to rolls needed for 99%)
     const rollsData = [];
     const probData = [];
-    for (let r = 1; r <= 15; r++) {
+    for (let r = 1; r <= rollsFor99Percent; r++) {
         rollsData.push(r + ' rolls');
         probData.push(1 - Math.pow(5/6, r)); // P(at least one 6)
     }
     
-    updateChart(rollsData, probData, 'Probability of At Least One 6 vs Number of Rolls', 'line');
+    updateChart(rollsData, probData, `Probability of At Least One 6 vs Number of Rolls (up to ${rollsFor99Percent} rolls for 99%)`, 'line');
+}
+
+function showDistributionExample() {
+    // Calculate distribution for exactly 50 rolls
+    const exampleRolls = 50;
+    const p = 1/6;
+    const expected = exampleRolls * p;
+    const stdDev = Math.sqrt(exampleRolls * p * (1 - p));
+    
+    // Calculate all probabilities using same logic as calculateSingleDie
+    const allProbabilities = [];
+    for (let k = 0; k <= exampleRolls; k++) {
+        const prob = combinations(exampleRolls, k) * Math.pow(p, k) * Math.pow(1-p, exampleRolls-k);
+        if (prob > 1e-10) {
+            allProbabilities.push({ k: k, prob: prob });
+        }
+    }
+    
+    // Sort by probability and find 99% cutoff
+    allProbabilities.sort((a, b) => b.prob - a.prob);
+    let cumulativeProb = 0;
+    const selectedResults = [];
+    
+    for (const item of allProbabilities) {
+        selectedResults.push(item);
+        cumulativeProb += item.prob;
+        if (cumulativeProb >= 0.99) {
+            break;
+        }
+    }
+    
+    // Sort by k value for chart display
+    selectedResults.sort((a, b) => a.k - b.k);
+    
+    // Create chart data
+    const labels = selectedResults.map(item => item.k + (item.k === 1 ? ' time' : ' times'));
+    const probabilities = selectedResults.map(item => item.prob);
+    
+    updateChart(labels, probabilities, `Distribution Example: Rolling 6 in ${exampleRolls} Rolls (${(cumulativeProb * 100).toFixed(1)}% of probability)`);
 }
 
 function showMathsMultipleDice() {
@@ -558,28 +663,25 @@ function showMathsAllDifferent() {
     
     const explanation = `
         <div class="formula-section">
-            <h4>Birthday Paradox</h4>
-            <p>This is a variation of the famous birthday paradox. With ${possibleSums} possible sums, what's the probability that ${numPeople} people all get different sums?</p>
-            <div class="formula">P(all different) = ${possibleSums}! / ((${possibleSums}-${numPeople})! × ${possibleSums}^${numPeople})</div>
+            <h4>Step 1: Calculate Individual Sum Probabilities</h4>
+            <p>For each possible sum s with ${dicePerPerson} dice:</p>
+            <div class="formula">P(sum = s) = (ways to get s) / 6^${dicePerPerson}</div>
+            <p>We enumerate all ${Math.pow(6, dicePerPerson).toLocaleString()} possible dice outcomes and count how many produce each sum.</p>
         </div>
         
         <div class="formula-section">
-            <h4>Step-by-Step Calculation</h4>
-            <p>Probability that all ${numPeople} people get different sums:</p>
-            <div class="formula">P = (${possibleSums}/${possibleSums}) × (${possibleSums-1}/${possibleSums}) × ... × (${Math.max(1, possibleSums-numPeople+1)}/${possibleSums})</div>
-            <ul>
-                <li>First person: Any sum (probability = 1)</li>
-                <li>Second person: Different from first (probability = ${possibleSums-1}/${possibleSums})</li>
-                <li>Third person: Different from first two (probability = ${possibleSums-2}/${possibleSums})</li>
-                <li>And so on...</li>
-            </ul>
+            <h4>Step 2: Combinatorial Enumeration</h4>
+            <p>For ${numPeople} people to all get different sums, we calculate:</p>
+            <div class="formula">P(all different) = Σ P(person₁ gets s₁) × P(person₂ gets s₂) × ...</div>
+            <p>Summed over all combinations where s₁, s₂, ..., sₙ are all different values.</p>
+            <p>This requires evaluating ${factorial(possibleSums) / factorial(Math.max(0, possibleSums - numPeople))} combinations.</p>
         </div>
         
         <div class="formula-section">
-            <h4>Collision Probability</h4>
-            <p>The probability that at least two people get the same sum:</p>
-            <div class="formula">P(collision) = 1 - P(all different)</div>
-            <p>This grows surprisingly quickly as the number of people increases!</p>
+            <h4>Step 3: Computational Method</h4>
+            <p><strong>Small groups (≤6 people):</strong> Exact recursive enumeration of all valid combinations</p>
+            <p><strong>Large groups (>6 people):</strong> Monte Carlo simulation with 50,000 trials</p>
+            <p>Each trial randomly assigns sums based on their probabilities and checks for uniqueness.</p>
         </div>
     `;
     
@@ -600,5 +702,131 @@ function showMathsAllDifferent() {
     }
     
     updateChart(peopleData, probData, 'Probability All Different vs Number of People', 'line');
+}
+
+// Helper functions for All Different Sums calculations
+
+// Helper function to calculate sum probabilities for n dice
+function calculateSumProbabilities(numDice, sides) {
+    const sumCounts = {};
+    const totalOutcomes = Math.pow(sides, numDice);
+    
+    // Generate all possible dice combinations
+    function generateCombinations(dice, currentSum) {
+        if (dice === 0) {
+            sumCounts[currentSum] = (sumCounts[currentSum] || 0) + 1;
+            return;
+        }
+        
+        for (let i = 1; i <= sides; i++) {
+            generateCombinations(dice - 1, currentSum + i);
+        }
+    }
+    
+    generateCombinations(numDice, 0);
+    
+    // Convert counts to probabilities
+    const sumProbs = {};
+    for (const sum in sumCounts) {
+        sumProbs[sum] = sumCounts[sum] / totalOutcomes;
+    }
+    
+    return sumProbs;
+}
+
+// Helper function to find most likely sum
+function findMostLikelySum(sumProbabilities) {
+    let maxProb = 0;
+    let mostLikelySum = 0;
+    
+    for (const sum in sumProbabilities) {
+        if (sumProbabilities[sum] > maxProb) {
+            maxProb = sumProbabilities[sum];
+            mostLikelySum = parseInt(sum);
+        }
+    }
+    
+    return mostLikelySum;
+}
+
+// Helper function to calculate exact probability that all people get different sums
+function calculateExactAllDifferent(numPeople, sumProbabilities, sums) {
+    if (numPeople > sums.length) {
+        return 0; // More people than possible sums
+    }
+    
+    // Use exact calculation for small numbers, approximation for larger
+    if (numPeople <= 6) {
+        return calculateExactCombinatorial(numPeople, sumProbabilities, sums);
+    } else {
+        return calculateMonteCarloApproximation(numPeople, sumProbabilities, sums);
+    }
+}
+
+// Exact combinatorial calculation for small numbers
+function calculateExactCombinatorial(numPeople, sumProbabilities, sums) {
+    let totalProb = 0;
+    
+    // Generate all combinations of different sums
+    function generateCombinations(people, usedSums, currentProb) {
+        if (people === 0) {
+            totalProb += currentProb;
+            return;
+        }
+        
+        for (let i = 0; i < sums.length; i++) {
+            const sum = sums[i];
+            if (!usedSums.has(sum)) {
+                usedSums.add(sum);
+                generateCombinations(people - 1, usedSums, currentProb * sumProbabilities[sum]);
+                usedSums.delete(sum);
+            }
+        }
+    }
+    
+    generateCombinations(numPeople, new Set(), 1);
+    return totalProb;
+}
+
+// Monte Carlo approximation for larger numbers
+function calculateMonteCarloApproximation(numPeople, sumProbabilities, sums) {
+    const trials = 50000;
+    let successfulTrials = 0;
+    
+    for (let trial = 0; trial < trials; trial++) {
+        const usedSums = new Set();
+        let success = true;
+        
+        for (let person = 0; person < numPeople; person++) {
+            // Randomly select a sum based on its probability
+            const randomSum = selectRandomSum(sumProbabilities, sums);
+            if (usedSums.has(randomSum)) {
+                success = false;
+                break;
+            }
+            usedSums.add(randomSum);
+        }
+        
+        if (success) {
+            successfulTrials++;
+        }
+    }
+    
+    return successfulTrials / trials;
+}
+
+// Helper to select random sum based on probability distribution
+function selectRandomSum(sumProbabilities, sums) {
+    const random = Math.random();
+    let cumulative = 0;
+    
+    for (const sum of sums) {
+        cumulative += sumProbabilities[sum];
+        if (random <= cumulative) {
+            return parseInt(sum);
+        }
+    }
+    
+    return sums[sums.length - 1]; // Fallback
 }
 
