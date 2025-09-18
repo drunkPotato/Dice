@@ -103,9 +103,12 @@ function destroyChart() {
     }
 }
 
-function updateChart(labels, probabilities, title, chartType = 'bar') {
+function updateChart(labels, data, title, chartType = 'bar') {
     const ctx = document.getElementById('probabilityChart').getContext('2d');
     destroyChart();
+    
+    // Check if this is count data (integers) vs probability data (decimals)
+    const isCountData = title.includes('Count Distribution') || data.every(val => Number.isInteger(val));
     
     chart = new Chart(ctx, {
         type: chartType,
@@ -113,7 +116,7 @@ function updateChart(labels, probabilities, title, chartType = 'bar') {
             labels: labels,
             datasets: [{
                 label: '',
-                data: probabilities,
+                data: data,
                 backgroundColor: chartType === 'line' ? 'rgba(52, 152, 219, 0.2)' : 'rgba(52, 152, 219, 0.7)',
                 borderColor: 'rgba(52, 152, 219, 1)',
                 borderWidth: 2,
@@ -133,7 +136,11 @@ function updateChart(labels, probabilities, title, chartType = 'bar') {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return (context.parsed.y * 100).toFixed(4) + '%';
+                            if (isCountData) {
+                                return context.parsed.y + ' times';
+                            } else {
+                                return (context.parsed.y * 100).toFixed(4) + '%';
+                            }
                         }
                     }
                 }
@@ -143,7 +150,11 @@ function updateChart(labels, probabilities, title, chartType = 'bar') {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return (value * 100).toFixed(2) + '%';
+                            if (isCountData) {
+                                return Number.isInteger(value) ? value : '';
+                            } else {
+                                return (value * 100).toFixed(2) + '%';
+                            }
                         }
                     }
                 }
@@ -828,5 +839,71 @@ function selectRandomSum(sumProbabilities, sums) {
     }
     
     return sums[sums.length - 1]; // Fallback
+}
+
+// Single Die Experiment Function
+function experimentSingleDie() {
+    const rolls = parseInt(document.getElementById('singleDieRolls').value);
+    
+    if (rolls > 1000) {
+        alert('Maximum 1000 rolls allowed for performance reasons');
+        return;
+    }
+    
+    // Perform the simulation
+    const results = [];
+    let sixCount = 0;
+    
+    for (let i = 1; i <= rolls; i++) {
+        const roll = Math.floor(Math.random() * 6) + 1;
+        results.push(roll);
+        if (roll === 6) {
+            sixCount++;
+        }
+    }
+    
+    // Display simulation results
+    const actualProb = sixCount / rolls;
+    const expectedProb = 1/6;
+    
+    let summary = `
+        <p><strong>Simulation Results (${rolls} rolls)</strong></p>
+        <p><strong>Number of 6s rolled:</strong> ${sixCount}</p>
+        <p><strong>Actual frequency:</strong> ${formatProbability(actualProb)}</p>
+        <p><strong>Expected frequency:</strong> ${formatProbability(expectedProb)}</p>
+        <p><strong>Difference:</strong> ${formatProbability(Math.abs(actualProb - expectedProb))}</p>
+    `;
+    
+    // Show the first 50 rolls for visualization
+    const displayRolls = Math.min(rolls, 50);
+    const rollsToShow = results.slice(0, displayRolls);
+    const rollsDisplay = rollsToShow.map((roll, index) => 
+        `<span style="color: ${roll === 6 ? '#e74c3c' : '#333'}; font-weight: ${roll === 6 ? 'bold' : 'normal'};">${roll}</span>`
+    ).join(' ');
+    
+    summary += `
+        <p><strong>First ${displayRolls} rolls:</strong></p>
+        <p style="font-family: monospace; line-height: 1.8; word-break: break-all;">${rollsDisplay}</p>
+        ${rolls > 50 ? '<p><em>... and ' + (rolls - 50) + ' more rolls</em></p>' : ''}
+    `;
+    
+    // Create frequency data for results table
+    const frequencyData = [];
+    const countData = [];
+    for (let face = 1; face <= 6; face++) {
+        const count = results.filter(roll => roll === face).length;
+        const frequency = count / rolls;
+        frequencyData.push({
+            outcome: `Face ${face}`,
+            probability: frequency
+        });
+        countData.push(count);
+    }
+    
+    displayResults(`Dice Roll Experiment (${rolls} rolls)`, frequencyData, summary);
+    
+    // Create chart showing the absolute counts of each face
+    const labels = frequencyData.map(r => r.outcome.split(' ')[1]);
+    updateChart(labels, countData, `Count Distribution from ${rolls} Roll Experiment`);
 }
 

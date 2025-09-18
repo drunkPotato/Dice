@@ -214,17 +214,17 @@ body {
 }
 
 .probability-high {
-    color: #27ae60;
+    color: #333;
     font-weight: 600;
 }
 
 .probability-medium {
-    color: #f39c12;
+    color: #333;
     font-weight: 600;
 }
 
 .probability-low {
-    color: #e74c3c;
+    color: #333;
     font-weight: 600;
 }
 
